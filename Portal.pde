@@ -62,8 +62,8 @@ class Portal implements Visible{
   void link(Portal p) {
     linked = p;
     tran = p.coords.copy().sub(this.coords); // LEADS OUT
-    p.linked = this;
-    p.tran = this.tran.copy().mult(-1);
+    //p.linked = this;
+    //p.tran = this.tran.copy().mult(-1);
     DeltaAngle = PVectorAngle(direction, linked.direction);//Расчитать разность углов
     MultDist = abs(a.copy().sub(b).mag()/linked.a.copy().sub(linked.b).mag());//TODO: написать это НОРМАЛЬНО 
   }
@@ -189,7 +189,6 @@ class Portal implements Visible{
             circle(point.x, point.y, 5);
             pop();
           }
-       // }
       }
     }
     
@@ -206,7 +205,6 @@ class Portal implements Visible{
     
   }
 
-  
   void show() {
     push();
     strokeWeight(2);
@@ -234,7 +232,7 @@ class Portal implements Visible{
   void ReLoad() {
     direction = a.copy().sub(b).div(2).rotate(HALF_PI).normalize();
     coords = a.copy().add(b).div(2);
-    link(linked);
+    //link(linked);
     didDrawPinkWalls = false;
   }
   

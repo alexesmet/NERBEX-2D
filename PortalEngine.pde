@@ -1,9 +1,13 @@
 // setting
-boolean DEBUG = true;               // main Debug param
+boolean DEBUG = false;               // main Debug param
 boolean CACHING = true;            // fucks portals up, do not use
 float SPEED = 8;                    // speed of character
 int RECURSIVITY = 1;                // you can see portals in portals N times (does not work yet)
 String LEVEL = "level_test.json";
+
+// === Global TODO List ===
+// - Mouse world rotation
+// - World rotation should be inside world class
 
 // global variables
 boolean   mousePress = false;
@@ -159,11 +163,10 @@ void draw() {
      }
   }
   
-  
-  
-  
-  //WorldRotation(0);
+
 }
+
+// =================================================================================================================
 
 // casts two similar rays in all shown corners. returns all points that reached the wall
 ArrayList<PVector> doubleCast(ArrayList<PVector> corners ) {
