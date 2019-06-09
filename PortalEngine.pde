@@ -1,6 +1,6 @@
 // setting
-boolean DEBUG = false;               // main Debug param
-boolean CACHING = false;            // fucks portals up, do not use
+boolean DEBUG = true;               // main Debug param
+boolean CACHING = true;            // fucks portals up, do not use
 float SPEED = 8;                    // speed of character
 int RECURSIVITY = 1;                // you can see portals in portals N times (does not work yet)
 String LEVEL = "level_test.json";
@@ -35,18 +35,9 @@ void draw() {
   position.add(movement);
   translate(-position.x+width/2, -position.y+height/2);
   
-  PVector buf = level.portals[0].coords;
-  RotateAround(level.portals[0].a,buf,PI/180);
-  RotateAround(level.portals[0].b,buf,PI/180);
-  level.portals[0].ReLoad();
-  level.portals[1].ReLoad();
-  println(level.portals[1].DeltaAngle);
-  println(level.portals[1].direction, level.portals[1].linked.direction);
-  
-  println(Angle(level.portals[1].direction));
-  println(Angle(level.portals[0].direction));
-  
-  
+  for (Portal portal : level.portals) {
+    portal.ReLoad();
+  }
   
   // find visable points (visible points are green, invisible are reed. Optimizes ray-marching
   ArrayList<PVector> visableCorners = new ArrayList<PVector>();
@@ -128,7 +119,10 @@ void draw() {
   for (int i=0;i<cast.size();i++) {
     PVector p = cast.get(i);
     vertex(p.x, p.y);
-    if (DEBUG) line(position.x, position.y,  p.x, p.y);
+    if (DEBUG) {
+      stroke(255,50);
+      line(position.x, position.y,  p.x, p.y);
+    }
   }
   endShape(CLOSE);
   pop();
@@ -210,7 +204,7 @@ PVector recursiveCast(Ray ray, Visible[]  wallsToCast, int count, float minMag) 
   }
   // if the wall this ray was hitting was actually a portal  
   if (teleporter != null && count < RECURSIVITY) {
-    return recursiveCast(ray, teleporter.teleport(wallsToCast, position), count+1 , result.copy().sub(position).mag() );
+    return recursiveCast(ray, teleporter.teleport(wallsToCast), count+1 , result.copy().sub(position).mag() );
   } 
 
   return result;

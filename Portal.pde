@@ -43,6 +43,7 @@ class Portal implements Visible{
   int UID;
   float DeltaAngle = 0; //Хранит в себе разность углов между связанным порталом
   float MultDist = 1; //Хранит в себе отношение длинн порталов 
+  boolean didDrawPinkWalls = true; // for debug, draw teleported walls only once.
   
   Portal linked = null;
   PVector tran = null;
@@ -58,8 +59,6 @@ class Portal implements Visible{
     coords = a.copy().add(b).div(2);
   }
   
-  
-  
   void link(Portal p) {
     linked = p;
     tran = p.coords.copy().sub(this.coords); // LEADS OUT
@@ -69,48 +68,33 @@ class Portal implements Visible{
     MultDist = abs(a.copy().sub(b).mag()/linked.a.copy().sub(linked.b).mag());//TODO: написать это НОРМАЛЬНО 
   }
   
-  Visible[] teleport(Visible[] portWalls, PVector pos) { //for walls
+  Visible[] teleport(Visible[] portWalls) { //for walls
     if (chache == null) {
       float angle = DeltaAngle + PI;
-      PVector left  = a.copy().sub(pos).normalize();
-      PVector right = b.copy().sub(pos).normalize();
       ArrayList<Visible> cacheProto = new ArrayList<Visible>();
       Visible shifted = null;
       for (Visible vis : portWalls) {
         if (this.linked.equals(vis)) continue; // we should not see back of this portal anymore
-        if (this.equals(vis)) continue;    
+        if (this.equals(vis)) continue;        // BREAKS RECURSIVITY
         //Повороты и умножения всякие
         shifted = vis.copyShift(tran.copy().mult(-1)); 
         RotateAround(shifted.first(), coords,  -angle);
         RotateAround(shifted.secon(), coords,  -angle);
         MultAround(shifted.first(),   coords,  MultDist);
         MultAround(shifted.secon(),   coords,  MultDist);
-        if (DEBUG) { //TODO: нужен ли этот демаг здесь?
-          push();
-          strokeWeight(1);
-          fill(0);
-          stroke(100,250,0);
-          circle(tran.copy().mult(-1).x, tran.copy().mult(-1).y, 7);
-          pop();
-        }
         
-        PVector toA = shifted.first().copy().sub(pos);
-        PVector toB = shifted.secon().copy().sub(pos);
         //TODO: переносить только половину стен
-        if (PVector.angleBetween(left,  toA.copy().rotate(HALF_PI)) -0.001 > HALF_PI &&
-            PVector.angleBetween(right, toA.copy().rotate(HALF_PI)) +0.001 < HALF_PI ||
-            PVector.angleBetween(left,  toB.copy().rotate(HALF_PI)) -0.001 > HALF_PI &&
-            PVector.angleBetween(right, toB.copy().rotate(HALF_PI)) +0.001 < HALF_PI || true) {
+        if (true) {
           cacheProto.add(shifted);
         }
       }
       chache =  cacheProto.toArray(new Visible[0]);
     } 
     //TODO: проверить баг, что в chache лежат дубликаты.
-    //Возникновение: если я смотрю в портал A, то комп начинает дико лагать, а розовые линии накладываются друг на друга. Не понимаю, что происходит
-    if (DEBUG) { // draw pink wall
+    if (DEBUG && !didDrawPinkWalls) { // draw pink wall
+      didDrawPinkWalls = true;
       push();
-      stroke(255,100,255,50);
+      stroke(255,100,255,150);
       for (Visible vis : chache) 
         line(vis.first().x, vis.first().y, vis.secon().x, vis.secon().y);
       pop();
@@ -141,7 +125,7 @@ class Portal implements Visible{
   
   ArrayList<PVector> translate(PVector[] points, PVector pos) {  // for points
     float angle = DeltaAngle;//Угол между порталами //TODO: пройтись по коду и выяснить, можно ли заменить angle на DeltaAngle без критических последствий 
-    angle += PI;//Волшебный доворот на PI, без этой волшебной констнты нихуя не работает
+    angle += PI; //Волшебный доворот на PI, без этой волшебной констнты нихуя не работает
     ArrayList<PVector> list = new ArrayList<PVector>();
     PVector left  = a.copy().sub(pos).normalize();
     PVector right = b.copy().sub(pos).normalize();
@@ -176,12 +160,12 @@ class Portal implements Visible{
     PVector transMultChar = MultAround(s2.copy(),linked.coords,linked.MultDist);//TODO: убрать лишнюю переменную
     if (DEBUG) { //показать точку новой виртуальной камеры
       push();
-      fill(255);
-      stroke(240);
-      strokeWeight(5);
-      circle(transChar.x,transChar.y,1);
-      circle(s2.x,s2.y,3);
-      circle(transMultChar.x,transMultChar.y,9);
+      fill(255, 150);
+      stroke(240, 150);
+      strokeWeight(2);
+      //circle(transChar.x,transChar.y,1);
+      //circle(s2.x,s2.y,3);
+      circle(transMultChar.x,transMultChar.y,4);
       pop();
     }
     transChar = transMultChar;
@@ -199,7 +183,7 @@ class Portal implements Visible{
             push();
             strokeWeight(1);
             fill(0);
-            stroke(col,100);
+            stroke(col,120);
             line(transChar.x, transChar.y, transChar.x + vectorTo.x, transChar.y + vectorTo.y);
             stroke(250,100,0);
             circle(point.x, point.y, 5);
@@ -251,6 +235,7 @@ class Portal implements Visible{
     direction = a.copy().sub(b).div(2).rotate(HALF_PI).normalize();
     coords = a.copy().add(b).div(2);
     link(linked);
+    didDrawPinkWalls = false;
   }
   
 }
