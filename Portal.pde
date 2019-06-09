@@ -94,7 +94,7 @@ class Portal implements Visible{
     if (DEBUG && !didDrawPinkWalls) { // draw pink wall
       didDrawPinkWalls = true;
       push();
-      stroke(255,100,255,150);
+      stroke(255,100,255,200);
       for (Visible vis : chache) 
         line(vis.first().x, vis.first().y, vis.secon().x, vis.secon().y);
       pop();

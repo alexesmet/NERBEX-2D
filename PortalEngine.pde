@@ -1,6 +1,6 @@
 // setting
-boolean DEBUG = false;               // main Debug param
-boolean CACHING = true;            // fucks portals up, do not use
+boolean DEBUG = true;               // main Debug param
+boolean CACHING = false;            // can fuck portals up
 float SPEED = 8;                    // speed of character
 int RECURSIVITY = 1;                // you can see portals in portals N times (does not work yet)
 String LEVEL = "level_test.json";
@@ -22,6 +22,7 @@ void setup() {
   stroke(50,50,50);
   
   level = new Level(LEVEL);
+  
 }
 
 void draw() {
@@ -163,7 +164,7 @@ void draw() {
      }
   }
   
-
+  level.rotates(0.001);
 }
 
 // =================================================================================================================
@@ -220,23 +221,4 @@ void mousePressed() {
 
 void mouseReleased() {
   mousePress = false;
-}
-
-//Повернуть весь мир на угол angle
-//TODO: опять же, выяснить в какую сторону...
-void WorldRotation(Level lev, float angle) {
-  
-   float normalX, normalY;
-   float sinangle = sin(angle), cosangle = cos(angle);
-   for (PVector point : lev.points) {
-     normalX = point.x - position.x;
-     normalY = point.y - position.y;
-     point.x = position.x + normalX * cosangle - normalY * sinangle;
-     point.y = position.y + normalY * cosangle + normalX * sinangle;
-   }
-   
-   for (Portal portal : lev.portals) {
-     portal.ReLoad();
-   }
-   
 }

@@ -41,4 +41,22 @@ class Level {
       portal.ReLoad();
     }
   }
+  
+  //Повернуть весь мир на угол angle
+  //TODO: опять же, выяснить в какую сторону...
+  void rotates(float angle) {
+    
+     float normalX, normalY;
+     float sinangle = sin(angle), cosangle = cos(angle);
+     for (PVector point : this.points) {
+       normalX = point.x - position.x;
+       normalY = point.y - position.y;
+       point.x = position.x + normalX * cosangle - normalY * sinangle;
+       point.y = position.y + normalY * cosangle + normalX * sinangle;
+     }
+     
+     for (Portal portal : this.portals) {
+       portal.ReLoad();
+     }
+  }
 }
