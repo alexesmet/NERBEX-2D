@@ -7,7 +7,8 @@ String LEVEL = "level_test.json";
 
 // === Global TODO List ===
 // - Mouse world rotation
-// - World rotation should be inside world class
+// - Wall collision
+// - Portal teleport player
 
 // global variables
 boolean   mousePress = false;
