@@ -1,5 +1,5 @@
 // setting
-boolean DEBUG = true;               // main Debug param
+boolean DEBUG = false;               // main Debug param
 boolean CACHING = false;            // fucks portals up, do not use
 float SPEED = 8;                    // speed of character
 int RECURSIVITY = 1;                // you can see portals in portals N times (does not work yet)
@@ -24,6 +24,7 @@ void draw() {
   background(0);  // erase screen
   
   
+  
   // handle input
   if (mousePress) 
     movement.set((mouseX-width/2), (mouseY-height/2)).normalize().mult(SPEED);  
@@ -33,6 +34,18 @@ void draw() {
   // move the character
   position.add(movement);
   translate(-position.x+width/2, -position.y+height/2);
+  
+  PVector buf = level.portals[0].coords;
+  RotateAround(level.portals[0].a,buf,PI/180);
+  RotateAround(level.portals[0].b,buf,PI/180);
+  level.portals[0].ReLoad();
+  level.portals[1].ReLoad();
+  println(level.portals[1].DeltaAngle);
+  println(level.portals[1].direction, level.portals[1].linked.direction);
+  
+  println(Angle(level.portals[1].direction));
+  println(Angle(level.portals[0].direction));
+  
   
   
   // find visable points (visible points are green, invisible are reed. Optimizes ray-marching
@@ -151,6 +164,9 @@ void draw() {
        p.clearCache();
      }
   }
+  
+  
+  
   
   //WorldRotation(0);
 }

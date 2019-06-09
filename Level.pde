@@ -35,6 +35,9 @@ class Level {
       int[] ids = jLinks.getJSONObject(i).getJSONArray("ln").getIntArray();
       portals[ids[0]].link(portals[ids[1]]);
     }
-   
+    
+    for (Portal portal : portals) {
+      portal.ReLoad();
+    }
   }
 }

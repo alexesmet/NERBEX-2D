@@ -1,8 +1,39 @@
-enum PortalState{
-    NONE,
-    PORTALIN,
-    PORTALOUT,
-};
+
+//TODO: вынести все функции в отдельный файл
+
+//Повернуть точку what относительно where на угол angle
+//А по или против часовой - да кто его знает. //TODO: выяснить, куда вращает
+PVector RotateAround(PVector what, PVector where, float angle) {
+  float sinangle = sin(angle), cosangle = cos(angle);           
+  float normalX = what.x - where.x;
+  float normalY = what.y - where.y;
+  what.x = where.x + normalX * cosangle - normalY * sinangle;
+  what.y = where.y + normalY * cosangle + normalX * sinangle;
+  return what;
+}
+
+//Изменить расстояние от where до what в coef раз. Меняется точка what
+PVector MultAround(PVector what, PVector where, float coef) {
+  what.x = where.x + (what.x - where.x) * coef;
+  what.y = where.y + (what.y - where.y) * coef;
+  return what;
+}
+ 
+//Считает угол относительно OX. Думает, что вектор base исходит от точки (0,0)
+//TODO: сделать нормально, без минусов
+//В Н И М А Т Е Л Ь Н О !!! Центр координат - слева СВЕРХУ! вектор (0,1) выглядит направленным вниз, но его угол PI!
+float Angle(PVector base) {
+  float angle = acos(base.x/base.mag());
+  if (base.y < 0) angle = 2*PI - angle;
+  return angle;
+}
+
+//Вернуть угол между base и what
+//Угол возвращается в черт знает каких пределах, но всё работает
+//TODO: определить пределы
+float PVectorAngle(PVector base, PVector what) {
+  return Angle(what) - Angle(base);
+}
 
 class Portal implements Visible{
   PVector coords;
@@ -12,7 +43,6 @@ class Portal implements Visible{
   int UID;
   float DeltaAngle = 0; //Хранит в себе разность углов между связанным порталом
   float MultDist = 1; //Хранит в себе отношение длинн порталов 
-  PortalState state = PortalState.NONE; //TODO: нужно ли это еще? Вероятно, так как сейчас есть функция нормального измерения угла между векторами, то это можно убрать
   
   Portal linked = null;
   PVector tran = null;
@@ -28,49 +58,20 @@ class Portal implements Visible{
     coords = a.copy().add(b).div(2);
   }
   
-    //Повернуть точку what относительно where на угол angle
-  //А по или против часовой - да кто его знает. TODO: выяснить, куда вращает
-  private PVector RotateAround(PVector what, PVector where, float angle) {
-    float sinangle = sin(angle), cosangle = cos(angle);           
-    float normalX = what.x - where.x;
-    float normalY = what.y - where.y;
-    what.x = where.x + normalX * cosangle - normalY * sinangle;
-    what.y = where.y + normalY * cosangle + normalX * sinangle;
-    return what;
-  }
   
-  //Изменить расстояние от where до what в coef раз. Меняется точка what
-  private PVector MultAround(PVector what, PVector where, float coef) {
-    what.x = where.x + (what.x - where.x) * coef;
-    what.y = where.y + (what.y - where.y) * coef;
-    return what;
-  }
-  
-  //Вернуть угол между base и what. base считается вектором, лежащий на оси OX
-  //Угол возвращается в пределах от -PI до PI
-  private float PVectorAngle(PVector base, PVector what) {
-    return -atan2(base.y - what.y, base.x - what.x) * 2 + PI;
-    //A = (A < 0) ? A + 360 : A;   //to [0...180] and [-1...-180]
-  }
   
   void link(Portal p) {
-    if (state == PortalState.NONE && p.state == PortalState.NONE) {//Установить стейты при начальной инициализации
-      state = PortalState.PORTALIN;
-      p.state = PortalState.PORTALOUT;
-    }   
     linked = p;
     tran = p.coords.copy().sub(this.coords); // LEADS OUT
     p.linked = this;
     p.tran = this.tran.copy().mult(-1);
     DeltaAngle = PVectorAngle(direction, linked.direction);//Расчитать разность углов
-    if (state == PortalState.PORTALOUT) { //wat? Я не знаю почему оно работает с этим куском, но трогать не буду. //TODO: проверить, нужен ли этот кусок
-      DeltaAngle*=-1;
-    }
     MultDist = abs(a.copy().sub(b).mag()/linked.a.copy().sub(linked.b).mag());//TODO: написать это НОРМАЛЬНО 
   }
   
   Visible[] teleport(Visible[] portWalls, PVector pos) { //for walls
     if (chache == null) {
+      float angle = DeltaAngle + PI;
       PVector left  = a.copy().sub(pos).normalize();
       PVector right = b.copy().sub(pos).normalize();
       ArrayList<Visible> cacheProto = new ArrayList<Visible>();
@@ -80,8 +81,8 @@ class Portal implements Visible{
         if (this.equals(vis)) continue;    
         //Повороты и умножения всякие
         shifted = vis.copyShift(tran.copy().mult(-1)); 
-        RotateAround(shifted.first(), coords, -DeltaAngle);
-        RotateAround(shifted.secon(), coords, -DeltaAngle);
+        RotateAround(shifted.first(), coords,  -angle);
+        RotateAround(shifted.secon(), coords,  -angle);
         MultAround(shifted.first(),   coords,  MultDist);
         MultAround(shifted.secon(),   coords,  MultDist);
         if (DEBUG) { //TODO: нужен ли этот демаг здесь?
@@ -140,7 +141,7 @@ class Portal implements Visible{
   
   ArrayList<PVector> translate(PVector[] points, PVector pos) {  // for points
     float angle = DeltaAngle;//Угол между порталами //TODO: пройтись по коду и выяснить, можно ли заменить angle на DeltaAngle без критических последствий 
-    
+    angle += PI;//Волшебный доворот на PI, без этой волшебной констнты нихуя не работает
     ArrayList<PVector> list = new ArrayList<PVector>();
     PVector left  = a.copy().sub(pos).normalize();
     PVector right = b.copy().sub(pos).normalize();
@@ -167,17 +168,20 @@ class Portal implements Visible{
     
     if (!good) return list;
     
+    //angle = PVectorAngle(direction, linked.direction);
     
+    //angle = - angle;
     PVector transChar = pos.copy().add(tran); // virtaul camera base
-    RotateAround(transChar,linked.coords,angle);; // virtaul camera rotate
-    PVector transMultChar = MultAround(transChar.copy(),linked.coords,linked.MultDist);//TODO: убрать лишнюю переменную
+    PVector s2 = RotateAround(transChar.copy(),linked.coords,angle);; // virtaul camera rotate
+    PVector transMultChar = MultAround(s2.copy(),linked.coords,linked.MultDist);//TODO: убрать лишнюю переменную
     if (DEBUG) { //показать точку новой виртуальной камеры
       push();
       fill(255);
       stroke(240);
       strokeWeight(5);
       circle(transChar.x,transChar.y,1);
-      circle(transMultChar.x,transMultChar.y,3);
+      circle(s2.x,s2.y,3);
+      circle(transMultChar.x,transMultChar.y,9);
       pop();
     }
     transChar = transMultChar;
