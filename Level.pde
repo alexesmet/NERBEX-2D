@@ -28,6 +28,7 @@ class Level {
     for(int i=0; i<jPortals.size(); i++ ) {
       int[] bases = jPortals.getJSONObject(i).getJSONArray("pt").getIntArray();
       Portal toAdd = new Portal(points[bases[0]],points[bases[1]]);
+      toAdd.UID = i;
       portals[i] = toAdd;       walls[i+jWalls.size()] = toAdd;
     }
     
