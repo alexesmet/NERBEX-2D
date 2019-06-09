@@ -7,3 +7,4 @@ Is based on Processing.
  - [ ] Import portal's UID from JSON data.
  - [ ] Mouse world rotation
  - [ ] Full-featured test level.
+ - [ ] WOrld rotation should be inside world class
