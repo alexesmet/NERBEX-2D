@@ -1,5 +1,5 @@
 // setting
-boolean DEBUG = true;               // main Debug param
+boolean DEBUG = false;               // main Debug param
 boolean CACHING = false;            // can fuck portals up
 float SPEED = 8;                    // speed of character
 int RECURSIVITY = 1;                // you can see portals in portals N times (does not work yet)
@@ -27,8 +27,6 @@ void setup() {
 
 void draw() {
   background(0);  // erase screen
-  
-  
   
   // handle input
   if (mousePress) 
@@ -163,8 +161,6 @@ void draw() {
        p.clearCache();
      }
   }
-  
-  level.rotates(0.001);
 }
 
 // =================================================================================================================
