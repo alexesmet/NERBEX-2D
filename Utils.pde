@@ -31,3 +31,10 @@ float Angle(PVector base) {
 float PVectorAngle(PVector base, PVector what) {
   return Angle(what) - Angle(base);
 }
+
+void mouseMove(PVector movement, boolean mousePress) {
+  if (mousePress) 
+    movement.set((mouseX-width/2), (mouseY-height/2)).normalize().mult(SPEED);  
+  else
+    movement.mult(0.65);
+}

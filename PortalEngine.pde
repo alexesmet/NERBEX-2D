@@ -36,10 +36,7 @@ void setup() {
 void draw() {
   background(0);  // erase screen
   // handle input
-  if (mousePress) 
-    movement.set((mouseX-width/2), (mouseY-height/2)).normalize().mult(SPEED);  
-  else
-    movement.mult(0.65);
+  mouseMove(movement, mousePress);
  
   // move the character
   // C O L L I S I O N   P R O C E S S !!!
