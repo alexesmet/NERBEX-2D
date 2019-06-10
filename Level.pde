@@ -43,7 +43,7 @@ class Level {
   }
   
   //Повернуть весь мир на угол angle
-  //TODO: опять же, выяснить в какую сторону...
+  //Положительный angle значит поворот по часовой стрелке
   void rotates(PVector position, float angle) {
     float normalX, normalY;
     float sinangle = sin(angle), cosangle = cos(angle);
@@ -59,6 +59,7 @@ class Level {
     }
   }
   
+  //Увеличить все расстояния на coef от точки отсчета position
   void scales(PVector position, float coef) {
     for (PVector point : this.points) {
       MultAround(point,   position,  coef);

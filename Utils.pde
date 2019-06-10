@@ -17,7 +17,6 @@ PVector MultAround(PVector what, PVector where, float coef) {
 }
  
 //Считает угол относительно OX. Думает, что вектор base исходит от точки (0,0)
-//TODO: сделать нормально, без минусов
 //В Н И М А Т Е Л Ь Н О !!! Центр координат - слева СВЕРХУ! вектор (0,1) выглядит направленным вниз, но его угол PI!
 float Angle(PVector base) {
   float angle = acos(base.x/base.mag());
@@ -37,4 +36,10 @@ void mouseMove(PVector movement, boolean mousePress) {
     movement.set((mouseX-width/2), (mouseY-height/2)).normalize().mult(SPEED);  
   else
     movement.mult(0.65);
+}
+
+void swap(PVector a, PVector b) {
+  PVector buf = b.copy();
+  b = a.copy();
+  a = buf;
 }

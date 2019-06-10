@@ -1,4 +1,4 @@
-class Portal implements Visible{
+class Portal extends Visible{
   PVector coords;
   PVector direction; //mag = radius
   PVector a, b; // for drawing 
@@ -28,7 +28,7 @@ class Portal implements Visible{
     //p.linked = this;
     //p.tran = this.tran.copy().mult(-1);
     DeltaAngle = PVectorAngle(direction, linked.direction);//Расчитать разность углов
-    MultDist = abs(a.copy().sub(b).mag()/linked.a.copy().sub(linked.b).mag());//TODO: написать это НОРМАЛЬНО 
+    MultDist = abs(a.copy().sub(b).mag()/linked.a.copy().sub(linked.b).mag());
   }
   
   Visible[] teleport(Visible[] portWalls) { //for walls
@@ -53,7 +53,6 @@ class Portal implements Visible{
       }
       chache =  cacheProto.toArray(new Visible[0]);
     } 
-    //TODO: проверить баг, что в chache лежат дубликаты.
     if (DEBUG && DEBUG_VIRTUAL && !didDrawPinkWalls) { // draw pink wall
       didDrawPinkWalls = true;
       push();
@@ -119,19 +118,16 @@ class Portal implements Visible{
     
     //angle = - angle;
     PVector transChar = pos.copy().add(tran); // virtaul camera base
-    PVector s2 = RotateAround(transChar.copy(),linked.coords,angle);; // virtaul camera rotate
-    PVector transMultChar = MultAround(s2.copy(),linked.coords,linked.MultDist);//TODO: убрать лишнюю переменную
+    RotateAround(transChar,linked.coords,angle);; // virtaul camera rotate
+    MultAround(transChar,linked.coords,linked.MultDist);//virtaul camera scale
     if (DEBUG && DEBUG_VIRTUAL) { //показать точку новой виртуальной камеры
       push();
       fill(255, 150);
       stroke(240, 150);
       strokeWeight(2);
-      //circle(transChar.x,transChar.y,1);
-      //circle(s2.x,s2.y,3);
-      circle(transMultChar.x,transMultChar.y,4);
+      circle(transChar.x,transChar.y,4);
       pop();
     }
-    transChar = transMultChar;
     for (PVector point : points) {  
       PVector vectorTo = point.copy().sub(transChar);
       if (PVector.angleBetween(left,  vectorTo.copy().rotate(HALF_PI)) +0.001 > HALF_PI &&
@@ -198,40 +194,5 @@ class Portal implements Visible{
     link(linked);
     didDrawPinkWalls = false;
   }
-  
-  float distance(PVector point) {
-    //TODO: Желательно в новый класс Solid или впихнуть в интерфейс Visible
-    return abs( (b.y - a.y)*point.x - (b.x - a.x)*point.y + b.x*a.y - b.y*a.x )/ (a.copy().sub(b).mag());
-  }
-  
-  PVector intersection(PVector point1, PVector point2) {
-    //TODO: Привести в нормальный вид // Желательно через новый класс Solid или впихнуть в интерфейс Visible
-    Wall buf = new Wall(a.copy(),b.copy());
-    PVector buf2 = buf.intersection(point1,point2);
-    return buf2;
-  }
-  
-  PVector projection(PVector point) {
-    //TODO: Желательно в новый класс Solid или впихнуть в интерфейс Visible
-    float x0 = a.x, y0 = a.y;
-    float x1 = b.x, y1 = b.y;
-    float x2 = point.x, y2 = point.y;
-    float x,y;
-    
-     if (abs(x0 - x1) < 0.01) {
-      x = x0;
-      y = y2;
-    }
-    else if (abs(y0 - y1) < 0.01) {
-      x = x2;
-      y = y0;
-    }
-    else { 
-      x = ( x0*pow(y1-y2,2) + x2* pow(x1-x0,2) + (x1 - x0)*(y1 - y0)*(y2 - y0) )/ ( pow(y1-y0,2) + pow(x1 - x0,2));
-      y = (x1-x0)*(x2 - x)/(y1-y0)+y2;
-    }
-    if ( (x < min(x0,x1)) || (x > max(x0,x1)) || (y < min(y0,y1)) || (y > max(y0,y1))) return null;   
-    
-    return new PVector(x, y);
-  }
+
 }
