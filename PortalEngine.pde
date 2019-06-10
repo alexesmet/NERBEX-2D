@@ -1,11 +1,11 @@
 // setting
 boolean DEBUG         = true ;      // main Debug param
 boolean DEBUG_VIRTUAL = false;      // 
-boolean DEBUG_LINES   = false;      // 
-boolean DEBUG_POINTS  = false;      // 
+boolean DEBUG_LINES   = false;      // see light traces
+boolean DEBUG_POINTS  = false;      // points on wich walls and portals are based
 boolean DEBUG_VECTOR  = false;      //
 boolean DEBUG_COLLISON= true ;      //
-boolean CACHING = false;            // can fuck portals up
+boolean CACHING = true;             // can fuck portals up
 float SPEED = 8;                    // speed of character
 int RECURSIVITY = 1;                // you can see portals in portals N times (does not work yet)
 int BODY_SIZE = 1;
@@ -63,7 +63,8 @@ void draw() {
         strokeWeight(2);
         line(inter.x, inter.y, wall.first().x, wall.first().y);
         line(inter.x, inter.y, wall.secon().x, wall.secon().y);
-        circle(inter.x, inter.y, 50);
+        fill(255,150);
+        circle(inter.x, inter.y, 25);
         pop();
       }
       //if (wall.distance(position) < COLLISION_DISTANCE) {
