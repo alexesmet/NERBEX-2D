@@ -1,5 +1,5 @@
 // setting
-boolean DEBUG           = true ;      // main Debug param
+boolean DEBUG           = false ;      // main Debug param
 
 boolean DEBUG_VIRTUAL   = false;      // see virual point and wall when portal works
 boolean DEBUG_LINES     = false;      // see light traces
@@ -13,8 +13,10 @@ boolean DEBUG_COLLISON_SPECIAL     =true ;// see virtual walls when after collis
 boolean DEBUG_COLLISON_INTERSECTION=true ;// see intersection vector (position,movement) on virtual walls when collision works
 
 
-boolean CACHING = true;               // can fuck portals up
+boolean CACHING = false;               // can fuck portals up
 float SPEED = 8;                      // speed of character
+float SPEED_RADIUS = 3;                // to obtain max SPEED, mouse pinter should be height/SPEED_RADIUS far from center.
+float SPEED_ROTATION = 0.3;
 int RECURSIVITY = 1;                  // you can see portals in portals N times (does not work yet)
 int BODY_SIZE = 1;                    // размер игрока
 float COLLISION_DISTANCE = 3;         // расстояние, на котором виртуальная стена находится от обычной
@@ -55,7 +57,7 @@ void setup() {
 void draw() {
   background(0);  // erase screen
   // handle input
-  mouseMove(movement, mousePress);
+  float worldRotationAngle = mouseMove(movement, mousePress);
  
   // move the character
   // C O L L I S I O N   P R O C E S S !!!
@@ -114,6 +116,7 @@ void draw() {
   }
   
   position.add(movement);
+  
   
   for (Visible wall : level.walls) {  
     if (wall.distance(position) < COLLISION_DISTANCE) { //Если итоговая позиция попадает в зону межу стеной и виртуальной стеной
@@ -258,6 +261,8 @@ void draw() {
        p.clearCache();
      }
   }
+  
+  level.rotates(position, worldRotationAngle);
 }
 
 // =================================================================================================================

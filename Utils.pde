@@ -31,12 +31,17 @@ float PVectorAngle(PVector base, PVector what) {
   return Angle(what) - Angle(base);
 }
 
-void mouseMove(PVector movement, boolean mousePress) {
-  if (mousePress) 
-    movement.set((mouseX-width/2), (mouseY-height/2)).normalize().mult(SPEED);  
-  else
+// changes player movement, returns how the world should rotate.
+float mouseMove(PVector movement, boolean mousePress) {
+  if (mousePress) {
+    float speed = map(mouseY-height/2, -height/SPEED_RADIUS/2, +height/SPEED_RADIUS/2, -SPEED, +SPEED) ;
+    movement.set(0, speed).limit(SPEED);  
+    return map(mouseX-width/2, -width/2, width/2, +0.1, -0.1);
+  } else
     movement.mult(0.65);
+  return 0;
 }
+
 
 void swap(PVector a, PVector b) {
   PVector buf = b.copy();
