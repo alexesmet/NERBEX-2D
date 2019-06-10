@@ -54,7 +54,7 @@ class Portal implements Visible{
       chache =  cacheProto.toArray(new Visible[0]);
     } 
     //TODO: проверить баг, что в chache лежат дубликаты.
-    if (DEBUG && !didDrawPinkWalls) { // draw pink wall
+    if (DEBUG && DEBUG_VIRTUAL && !didDrawPinkWalls) { // draw pink wall
       didDrawPinkWalls = true;
       push();
       stroke(255,100,255,200);
@@ -71,7 +71,7 @@ class Portal implements Visible{
   }
   
   Visible copyShift(PVector by) {
-    Portal res = new Portal(a,b);
+    Portal res = new Portal(a.copy(),b.copy());
     res.link(this.linked);
     res.UID = this.UID;
     return res;
@@ -99,7 +99,7 @@ class Portal implements Visible{
     RotateAround(right, new PVector(0,0), angle);
     PVector lstart  = linked.b.copy();
     PVector rstart  = linked.a.copy();  
-    if (DEBUG) {//Дебаг отрисовки линий, показывающий область видимости после перехода из портала
+    if (DEBUG && DEBUG_VIRTUAL) {//Дебаг отрисовки линий, показывающий область видимости после перехода из портала
       push();
       strokeWeight(1);
       stroke(col);
@@ -121,7 +121,7 @@ class Portal implements Visible{
     PVector transChar = pos.copy().add(tran); // virtaul camera base
     PVector s2 = RotateAround(transChar.copy(),linked.coords,angle);; // virtaul camera rotate
     PVector transMultChar = MultAround(s2.copy(),linked.coords,linked.MultDist);//TODO: убрать лишнюю переменную
-    if (DEBUG) { //показать точку новой виртуальной камеры
+    if (DEBUG && DEBUG_VIRTUAL) { //показать точку новой виртуальной камеры
       push();
       fill(255, 150);
       stroke(240, 150);
@@ -142,7 +142,7 @@ class Portal implements Visible{
           MultAround(newpoint,coords,MultDist);
           list.add(newpoint);
           //Отрисовка виртуальный камеры
-          if (DEBUG) { 
+          if (DEBUG && DEBUG_VIRTUAL) { 
             push();
             strokeWeight(1);
             fill(0);
@@ -199,4 +199,39 @@ class Portal implements Visible{
     didDrawPinkWalls = false;
   }
   
+  float distance(PVector point) {
+    //TODO: Желательно в новый класс Solid или впихнуть в интерфейс Visible
+    return abs( (b.y - a.y)*point.x - (b.x - a.x)*point.y + b.x*a.y - b.y*a.x )/ (a.copy().sub(b).mag());
+  }
+  
+  PVector intersection(PVector point1, PVector point2) {
+    //TODO: Привести в нормальный вид // Желательно через новый класс Solid или впихнуть в интерфейс Visible
+    Wall buf = new Wall(a.copy(),b.copy());
+    PVector buf2 = buf.intersection(point1,point2);
+    return buf2;
+  }
+  
+  PVector projection(PVector point) {
+    //TODO: Желательно в новый класс Solid или впихнуть в интерфейс Visible
+    float x0 = a.x, y0 = a.y;
+    float x1 = b.x, y1 = b.y;
+    float x2 = point.x, y2 = point.y;
+    float x,y;
+    
+     if (abs(x0 - x1) < 0.01) {
+      x = x0;
+      y = y2;
+    }
+    else if (abs(y0 - y1) < 0.01) {
+      x = x2;
+      y = y0;
+    }
+    else { 
+      x = ( x0*pow(y1-y2,2) + x2* pow(x1-x0,2) + (x1 - x0)*(y1 - y0)*(y2 - y0) )/ ( pow(y1-y0,2) + pow(x1 - x0,2));
+      y = (x1-x0)*(x2 - x)/(y1-y0)+y2;
+    }
+    if ( (x < min(x0,x1)) || (x > max(x0,x1)) || (y < min(y0,y1)) || (y > max(y0,y1))) return null;   
+    
+    return new PVector(x, y);
+  }
 }

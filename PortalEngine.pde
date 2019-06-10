@@ -1,8 +1,15 @@
 // setting
-boolean DEBUG = false;               // main Debug param
+boolean DEBUG         = true ;      // main Debug param
+boolean DEBUG_VIRTUAL = false;      // 
+boolean DEBUG_LINES   = false;      // 
+boolean DEBUG_POINTS  = false;      // 
+boolean DEBUG_VECTOR  = false;      //
+boolean DEBUG_COLLISON= true ;      //
 boolean CACHING = false;            // can fuck portals up
 float SPEED = 8;                    // speed of character
 int RECURSIVITY = 1;                // you can see portals in portals N times (does not work yet)
+int BODY_SIZE = 1;
+float COLLISION_DISTANCE = 5;
 String LEVEL = "level_test.json";
 
 // === Global TODO List ===
@@ -28,7 +35,6 @@ void setup() {
 
 void draw() {
   background(0);  // erase screen
-  
   // handle input
   if (mousePress) 
     movement.set((mouseX-width/2), (mouseY-height/2)).normalize().mult(SPEED);  
@@ -36,8 +42,41 @@ void draw() {
     movement.mult(0.65);
  
   // move the character
-  position.add(movement);
+  // C O L L I S I O N   P R O C E S S !!!
+  //position.add(movement);
   translate(-position.x+width/2, -position.y+height/2);
+  
+  PVector aftermov = position.copy().add(movement);
+  for (Visible wall : level.walls) {
+    PVector proj = wall.projection(position);
+    if (proj != null && DEBUG && DEBUG_COLLISON) {
+      circle(proj.x, proj.y, 3);
+    }
+    
+    PVector inter = wall.intersection(position,aftermov);
+    if (DEBUG && DEBUG_COLLISON) line(position.x,position.y,aftermov.x,aftermov.y);
+    if (inter != null) {
+      if (DEBUG && DEBUG_COLLISON) {
+        push();
+        strokeWeight(5);
+        line(position.x, position.y, inter.x, inter.y);
+        strokeWeight(2);
+        line(inter.x, inter.y, wall.first().x, wall.first().y);
+        line(inter.x, inter.y, wall.secon().x, wall.secon().y);
+        circle(inter.x, inter.y, 50);
+        pop();
+      }
+      //if (wall.distance(position) < COLLISION_DISTANCE) {
+      PVector normal = wall.projection(aftermov);
+      PVector naprav = normal.copy().sub(aftermov).normalize();
+      position = normal.copy().add(naprav.copy().mult(COLLISION_DISTANCE));
+      position.add(movement.copy().mult(-1));
+        //was_colision = true;
+      //}      
+    }     
+  }
+  position.add(movement);
+  
   
   for (Portal portal : level.portals) {
     portal.ReLoad();
@@ -60,7 +99,7 @@ void draw() {
       
     }
     if (visible) visableCorners.add(point);
-    if (DEBUG) {
+    if (DEBUG && DEBUG_POINTS) {
       push();
       strokeWeight(2);
       if (!visible) {
@@ -83,7 +122,7 @@ void draw() {
     translatedPoints.addAll(portal.translate(level.points, position));
   }
   
-  if (DEBUG) {
+  if (DEBUG && DEBUG_VIRTUAL) {
     push();
     strokeWeight(4);
     fill(0);
@@ -123,7 +162,7 @@ void draw() {
   for (int i=0;i<cast.size();i++) {
     PVector p = cast.get(i);
     vertex(p.x, p.y);
-    if (DEBUG) {
+    if (DEBUG && DEBUG_LINES) {
       stroke(255,50);
       line(position.x, position.y,  p.x, p.y);
     }
@@ -132,7 +171,7 @@ void draw() {
   pop();
   
   // draw the vector (debug only)
-  if (mousePress && DEBUG) {
+  if (mousePress && DEBUG && DEBUG_VECTOR) {
     push();
     stroke(255,255,0);
     fill(255,255,0);
@@ -147,7 +186,7 @@ void draw() {
   fill(255);
   stroke(240);
   strokeWeight(5);
-  circle(position.x,position.y,10);
+  circle(position.x,position.y,BODY_SIZE);
   pop();
  
   if (DEBUG) {
