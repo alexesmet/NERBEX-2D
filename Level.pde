@@ -56,6 +56,7 @@ class Level {
      
     for (Portal portal : this.portals) {
       portal.ReLoad();
+      portal.clearCache();
     }
   }
   
@@ -67,6 +68,7 @@ class Level {
     
     for (Portal portal : this.portals) {
       portal.ReLoad();
+      portal.clearCache();
     }
   }
    

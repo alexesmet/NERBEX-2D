@@ -1,7 +1,7 @@
 // setting
 boolean DEBUG           = true ;      // main Debug param
 
-boolean DEBUG_VIRTUAL   = false;      // see virual point and wall when portal works
+boolean DEBUG_VIRTUAL   = true;      // see virual point and wall when portal works
 boolean DEBUG_LINES     = false;      // see light traces
 boolean DEBUG_POINTS    = false;      // points on wich walls and portals are based
 boolean DEBUG_VECTOR    = false;      // see move line
@@ -28,8 +28,6 @@ String LEVEL = "level_test.json";
 // - в Wall разобраться, что происходит в функциях из интернетов
 // - Пофиксить колижен еще сильнее. 
 
-//Баг: вероятно, при непрямых плоскостях колижен не работает совсем. Скорее всего, ошибка кроется в функция класса Visible
-
 //Баг: если двигаться близко к виртуальной стене и почти параллельно ей, то возможно ускорение движения засчет телепортации
 
 //Баг: если попытаться пройти через стены с угла > 180 градусов, то можно пройти сквозь него. 
@@ -49,10 +47,11 @@ void setup() {
   stroke(50,50,50);
   
   level = new Level(LEVEL);
-  
+  level.rotates(position,PI/3);
 }
 
 void draw() {
+  level.rotates(position,PI/180);
   background(0);  // erase screen
   // handle input
   mouseMove(movement, mousePress);

@@ -37,8 +37,11 @@ abstract class Visible {
       y = y0;
     }
     else {
-      x = ( x0*pow(y1-y2,2) + x2* pow(x1-x0,2) + (x1 - x0)*(y1 - y0)*(y2 - y0) )/ ( pow(y1-y0,2) + pow(x1 - x0,2));
-      y = (x1-x0)*(x2 - x)/(y1-y0)+y2;
+      float dx = x1 - x0;
+      float dy = y1 - y0;
+      x = (x2 * dx*dx  + dx*dy*(y2-y0) + x0*dy*dy)/(dx*dx + dy*dy);
+      y = y2 - (dx/dy)*(x - x2);
+      
     }
     if (border) if ( (x < min(x0,x1)) || (x > max(x0,x1)) || (y < min(y0,y1)) || (y > max(y0,y1))) return null;
     return new PVector(x, y);
