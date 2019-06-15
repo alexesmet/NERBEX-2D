@@ -1,15 +1,26 @@
 import pygame
+import json
 # You can install pygame lib with `pip install pygame`
  
 class Bunch:
     def __init__(self, **kwds):
         self.__dict__.update(kwds)
 
+class Level:
+    def __init__(self, path=None):
+        self.points = []
+        self.walls = []
+        if path is not None:
+            with open(path, 'r') as f:
+                obj = json.load(f)
+                for point in obj["points"]:
+                    self.points.append( (point["xy"][0],point["xy"][1]) )
+
 # Define some colors
 BLACK = (  0,  0,  0)
 WHITE = (255,255,255)
 
-points = []
+level = Level("data/level_test.json")
 state = Bunch(
     grid_size=20,
     disable_grid_snapping=False,
@@ -58,21 +69,21 @@ while not done:
                 state.disable_grid_snapping = False
         elif event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:
-                for i, point in enumerate(points):
+                for i, point in enumerate(level.points):
                     if (event.pos[0]-point[0])**2+(event.pos[1]-point[1])**2<state.point_size**2+1:
                         state.dragging_point_id = i
                         break
                 else: # this is for-else expression, not if-else
-                    points.append(snap_to_grid((event.pos[0],event.pos[1])))
-                    state.dragging_point_id = len(points)-1
+                    level.points.append(snap_to_grid((event.pos[0],event.pos[1])))
+                    state.dragging_point_id = len(level.points)-1
             elif event.button == 3:
-                for point in points:
+                for point in level.points:
                     if (event.pos[0]-point[0])**2+(event.pos[1]-point[1])**2<state.point_size**2+1:
-                        points.remove(point)
+                        level.points.remove(point)
 
         elif event.type == pygame.MOUSEMOTION:
             if state.dragging_point_id is not None:
-                points[state.dragging_point_id] = snap_to_grid((event.pos[0],event.pos[1]))
+                level.points[state.dragging_point_id] = snap_to_grid((event.pos[0],event.pos[1]))
         elif event.type == pygame.MOUSEBUTTONUP:
             if event.button == 1:
                 state.dragging_point_id = None
@@ -91,7 +102,7 @@ while not done:
                 j += state.grid_size
             i += state.grid_size
 
-    for i, point in enumerate(points):
+    for i, point in enumerate(level.points):
         if i == state.dragging_point_id:
             col = (255,255,0)
         else:
