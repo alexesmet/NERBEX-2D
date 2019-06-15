@@ -12,13 +12,14 @@ WHITE = (255,255,255)
 points = []
 state = Bunch(
     grid_size=20,
-    point_size=3,
+    disable_grid_snapping=False,
+    point_size=4,
     dragging_point_id=None
 )
 
 
 def snap_to_grid(pt):
-    if state.grid_size > 0:
+    if state.grid_size > 0 and not state.disable_grid_snapping:
         gr = state.grid_size
         return ((pt[0]+gr//2)//gr*gr,
                 (pt[1]+gr//2)//gr*gr)
@@ -47,15 +48,28 @@ while not done:
             screen = pygame.display.set_mode((event.w, event.h), pygame.RESIZABLE)
             screen.blit(old_surface_saved, (0,0))
             del old_surface_saved
+        elif event.type == pygame.KEYDOWN:
+            if (event.key == pygame.K_LCTRL or event.key == pygame.K_RCTRL) and \
+                    not state.disable_grid_snapping:
+                state.disable_grid_snapping = True
+        elif event.type == pygame.KEYUP:
+            if (event.key == pygame.K_LCTRL or event.key == pygame.K_RCTRL) and \
+                    state.disable_grid_snapping:
+                state.disable_grid_snapping = False
         elif event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:
                 for i, point in enumerate(points):
-                    if (event.pos[0]-point[0])**2+(event.pos[1]-point[1])**2 < state.point_size**2:
+                    if (event.pos[0]-point[0])**2+(event.pos[1]-point[1])**2<state.point_size**2+1:
                         state.dragging_point_id = i
                         break
                 else: # this is for-else expression, not if-else
                     points.append(snap_to_grid((event.pos[0],event.pos[1])))
                     state.dragging_point_id = len(points)-1
+            elif event.button == 3:
+                for point in points:
+                    if (event.pos[0]-point[0])**2+(event.pos[1]-point[1])**2<state.point_size**2+1:
+                        points.remove(point)
+
         elif event.type == pygame.MOUSEMOTION:
             if state.dragging_point_id is not None:
                 points[state.dragging_point_id] = snap_to_grid((event.pos[0],event.pos[1]))
