@@ -4,6 +4,12 @@
 Is based on Processing.
 
 ### Level Editor Usage
+If you want to use `map_editor.py`, you will need to install some packages:
+```
+pip install pygame
+pip install Tkinter
+```
+Controls:
  - Create new points by left-click.
  - You can also drag points with left mouse button
  - Delete points by right-clicking gron them.
