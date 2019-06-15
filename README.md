@@ -9,3 +9,4 @@ Is based on Processing.
  - Delete points by right-clicking gron them.
  - Disable grid snapping by holding CTRL button.
  - **Warning**, you can accidentally stack points on a top of each other. 
+ - You can move around by holding Alt and Left mouse button.
