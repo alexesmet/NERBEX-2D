@@ -1,5 +1,5 @@
 // setting
-boolean DEBUG           = true ;      // main Debug param
+boolean DEBUG           = false;      // main Debug param
 
 boolean DEBUG_VIRTUAL   = false;      // see virual point and wall when portal works
 boolean DEBUG_LINES     = false;      // see light traces
@@ -7,7 +7,7 @@ boolean DEBUG_POINTS    = false;      // points on wich walls and portals are ba
 boolean DEBUG_VECTOR    = false;      // see move line
 
 boolean DEBUG_COLLISON  = true ;      // main Debug param for collesion
-boolean DEBUG_COLLISON_PROJECTION  =false;// see projections body on  collision works
+boolean DEBUG_COLLISON_PROJECTION  =true;// see projections body on  collision works
 boolean DEBUG_COLLISON_VIRTUAL     =true ;// see virtual walls when collision works
 boolean DEBUG_COLLISON_INTERSECTION=true ;// see intersection vector (position,movement) on virtual walls when collision works
 
@@ -15,30 +15,29 @@ boolean DEBUG_COLLISON_INTERSECTION=true ;// see intersection vector (position,m
 boolean CACHING = true;               // can fuck portals up
 float SPEED = 8;                      // speed of character
 int RECURSIVITY = 1;                  // you can see portals in portals N times (does not work yet)
-int BODY_SIZE = 0;                    // размер игрока
-float COLLISION_DISTANCE = 0.8;         // расстояние, на котором виртуальная стена находится от обычной
+int BODY_SIZE = 5;                    // размер игрока
+float COLLISION_DISTANCE = 0.8;       // расстояние, на котором виртуальная стена находится от обычной
 String LEVEL = "level_test.json";
 
 // === Global TODO List ===
 // - Mouse world rotation
-// - Wall collision
-// - Portal teleport player
 
 // - в Wall разобраться, что происходит в функциях из интернетов
-// - Пофиксить колижен еще сильнее. 
 
-//Баг: если двигаться близко к виртуальной стене и почти параллельно ей, то возможно ускорение движения засчет телепортации
-
-//Баг: если попытаться пройти через стены с угла > 180 градусов, то можно пройти сквозь него. 
-//Предпологаемый фикс - продлить виртуальные стены по длинне в зависимости от COLLISION_DISTANCE так, чтобы закрыть эту брешь
+// - Пофиксить колижен еще сильнее.  
+  // - Вероятен баг, если близко двигаться паралельно стене, то может начать трясти камеру
+  // - Залипания на концах стен
+  
+// - Пофиксить телепортацию
+  // - При многократном прохождении через портал уменьшения можно туннелировать сквозь стену
+  
 
 // global variables
 boolean   mousePress = false;
 PVector   movement = new PVector(0,0);
 PVector   position = new PVector(450,250);
 Level     level;
-int count = 0;
-int mcount = 0;
+
 void setup() {
   size(1000, 700);
   frameRate(30);
@@ -50,72 +49,26 @@ void setup() {
 }
 
 void draw() {
-  level.rotates(position,PI/180);
   background(0);  // erase screen
   // handle input
   mouseMove(movement, mousePress);
  
   // move the character
   // C O L L I S I O N   P R O C E S S !!!
+  if (DEBUG && DEBUG_COLLISON) translate(-position.x+width/2, -position.y+height/2);
+  boolean wascollision;
+  //Главный цикл колижена
+  do { //Если был найден колижен, продолжать искать колижены
+    wascollision = false;
+    for (Visible wall : level.walls) {//Поиск первого колижена
+      wascollision = wall.collision(position,movement);
+      if (wascollision) break;//Если найден, то начать поиск колиженов заного
+    }
+  } while (wascollision);
   
-  PVector aftermov = position.copy().add(movement);//Предпологаемая позиция, куда игрок переместиться в среде без колижена
-  if (DEBUG && DEBUG_COLLISON) {
-    translate(-position.x+width/2, -position.y+height/2);
-  }
-  while (true) {//Мега костыль для процесса колижена
-    boolean wascolision = false;
-    if (DEBUG && DEBUG_COLLISON) {
-      
-      push();
-      line(position.x,position.y,aftermov.x,aftermov.y);
-      stroke(255,0,0,255);
-      line(position.x,position.y,position.x,position.y); 
-      stroke(0,255,0,255);
-      line(aftermov.x,aftermov.y,position.x,position.y); 
-      pop();
-    }
-    for (Visible wall : level.walls) {
-      
-      if (DEBUG && DEBUG_COLLISON && DEBUG_COLLISON_PROJECTION) {
-        PVector proj = wall.projection(position, true);
-        if (proj != null) {
-          circle(proj.x, proj.y, 3);
-        }
-      }
-      
-      Wall virt_wall = new Wall(wall.first().copy(), wall.secon().copy()); //Виртуальная стена колижена
-      PVector normile = virt_wall.projection(position, false); //Если игрок в принципе может коснуться некоторой стены, то мы будем рабоать с этой стеной
-      if (normile != null) { //Если проекция есть, то игрок может коснуться стены
-        if (virt_wall.intersection(aftermov,position) != null) {//Если было перечение виртуальной стены и линии движения игрока, то начать колижен
-          if (DEBUG && DEBUG_COLLISON && DEBUG_COLLISON_INTERSECTION) {
-            PVector pos = virt_wall.intersection(aftermov,position);
-            push();
-            stroke(255,0,0,255);
-            circle(pos.x, pos.y, 2);
-            pop();
-            
-          }
-          normile = position.copy().sub(normile).normalize().mult(COLLISION_DISTANCE);//Определим, в каком направлении виртаульная стена
-          //И сдвинем её туда
-          virt_wall.a.add(normile);
-          virt_wall.b.add(normile);
-          
-          if (DEBUG && DEBUG_COLLISON && DEBUG_COLLISON_VIRTUAL) line(virt_wall.a.x, virt_wall.a.y, virt_wall.b.x, virt_wall.b.y);
-          position = virt_wall.projection(position,false);
-          aftermov = virt_wall.projection(aftermov,false);
-          movement = aftermov.copy().sub(position);
-          wascolision = true;
-          //break;
-        }    
-        
-      }
-      
-    }
-    if (!wascolision) break;
-  }
   position.add(movement);
-  
   if (!(DEBUG && DEBUG_COLLISON)) translate(-position.x+width/2, -position.y+height/2);
+  
   for (Portal portal : level.portals) {
     portal.ReLoad();
   }

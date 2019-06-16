@@ -87,15 +87,14 @@ class Portal extends Visible{
   
   ArrayList<PVector> translate(PVector[] points, PVector pos) {  // for points
     float angle = DeltaAngle;//Угол между порталами //TODO: пройтись по коду и выяснить, можно ли заменить angle на DeltaAngle без критических последствий 
-    angle += PI; //Волшебный доворот на PI, без этой волшебной констнты нихуя не работает
+    angle += PI; //Волшебный доворот на PI, без этой волшебной констнты ничего не работает
     ArrayList<PVector> list = new ArrayList<PVector>();
     PVector left  = a.copy().sub(pos).normalize();
     PVector right = b.copy().sub(pos).normalize();
     float FOV = PVector.angleBetween(right.copy().add(left), direction);
     boolean good = FOV < HALF_PI;
-    
-    RotateAround(left , new PVector(0,0), angle); //TODO: узнать как работает rotate и юзнуть его, а не вот это вот
-    RotateAround(right, new PVector(0,0), angle);
+    left.rotate(angle);
+    right.rotate(angle);
     PVector lstart  = linked.b.copy();
     PVector rstart  = linked.a.copy();  
     if (DEBUG && DEBUG_VIRTUAL) {//Дебаг отрисовки линий, показывающий область видимости после перехода из портала
@@ -194,5 +193,35 @@ class Portal extends Visible{
     link(linked);
     didDrawPinkWalls = false;
   }
+  
+  boolean collision(PVector pos, PVector mov) {
+    
+    PVector aftermove = pos.copy().add(mov);
+    PVector intersect = this.intersection(pos,aftermove);
+    float angle = DeltaAngle + PI;
+    
+    if (intersect != null && linked != null) {//Если было перечение портала и есть залинкованый портал
+      PVector p1 = coords.copy().add(direction).sub(pos);//Найти точки за
+      PVector p2 = coords.copy().sub(direction).sub(pos);//и перед порталом
+      if (p1.mag() > p2.mag()) {//Если расстояние до точки за превышает, то значит, в портал заходят с правильной стороны
+        level.rotates(pos,-angle);
+        level.scales(pos,MultDist);
+        
+        float h = this.distance(pos); //Расстояние виртуального игрока до двух порталов пропорционально MultDist; //TODO: узнать, надо домножать или делить на MultDist. Или оставить как есть
+        PVector proj = this.projection(pos,false);//Найти текущей проекцию позиции на портал
+        float mulb = linked.a.copy().sub(linked.b).mag() * //Длинна выходного портала 
+                     b.copy().sub(proj).mag() /            //Длинна от точки b до точки проекции
+                     a.copy().sub(b).mag();                //длинна входного портаола
+                                                           //Вместе составляю коэфициент, позволяющий длинну от точку проекции виртаульного игрока на выходной портал до точки b выходного портала
+                                                           
+        PVector virt = linked.a.copy().add(linked.b.copy().sub(linked.a).normalize().mult(mulb));//Найти точку проекции виртаульного игрока на выходной портал
+        virt.add(linked.direction.copy().normalize().mult(h)); //отодвинуть точку проекции от выходного портала на расстоние h, тем самым находя точку виртуального игрока
+        pos.set(virt);//Поставить игрока на позицию виртуального игрока
+        return true;
+      }
+    }
+    return false;
+  }
+  
 
 }

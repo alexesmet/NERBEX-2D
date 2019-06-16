@@ -1,6 +1,9 @@
 abstract class Visible {
   abstract PVector first(); //Первая точка
   abstract PVector secon(); //Вторая точка
+  float coef() {
+    return (secon().y - first().y) / (secon().x - first().x);
+  }
   abstract void show();
   abstract Visible copyShift(PVector by);
   abstract void ReLoad();
@@ -46,6 +49,9 @@ abstract class Visible {
     if (border) if ( (x < min(x0,x1)) || (x > max(x0,x1)) || (y < min(y0,y1)) || (y > max(y0,y1))) return null;
     return new PVector(x, y);
   }
+  
+  //Возвращает true, если было событие колижена
+  abstract boolean collision(PVector pos, PVector mov);
 }
 
 //Очень интересный скомунижжженый код с интернетов
@@ -55,7 +61,7 @@ abstract class Visible {
 float EPS =1E-4;
 
 //No My Function 0
-boolean nmf0(PVector a, PVector b) {
+boolean speccheck(PVector a, PVector b) {
   if (a.x < b.x-EPS || abs(a.x-b.x) < EPS && a.y < b.y - EPS) return true;
   return false;
 }
@@ -78,7 +84,7 @@ class myline {
     return a * p.x + b * p.y + c;
   }
 };
-//No My Function 1
+//determinant
 float det(float a, float b, float c, float d) {
   return a*d - b*c;
 }
@@ -102,6 +108,7 @@ boolean intersect_1d (float a, float b, float c, float d) {
 }
 
 //No My Function 4 intersect
+//TODO: используя правило "замени термин его значением" убрать все дополнительнные классы, засунув всё в intersect
 boolean intersect (PVector a, PVector b, PVector c, PVector d, PVector left, PVector right) {
   if (! intersect_1d (a.x, b.x, c.x, d.x) || ! intersect_1d (a.y, b.y, c.y, d.y)) {
     return false;
@@ -112,12 +119,12 @@ boolean intersect (PVector a, PVector b, PVector c, PVector d, PVector left, PVe
   if (abs (zn) < EPS) {
     if (abs (m.mydist (c)) > EPS || abs (n.mydist (a)) > EPS)
       return false;
-    if (nmf0(b,a)) swap(b,a);
-    if (nmf0(d,c)) swap(d,c);
+    if (speccheck(b,a)) swap(b,a);
+    if (speccheck(d,c)) swap(d,c);
     
-    if (nmf0(a,c)) left = c;
+    if (speccheck(a,c)) left = c;
     else left = a;
-    if (nmf0(b,d)) right = b;
+    if (speccheck(b,d)) right = b;
     else right = d;
     return true;
   }
@@ -163,6 +170,43 @@ class Wall extends Visible {
   
   void ReLoad() {
    //Why should I do a long reflection-based check if I can call an empty function?..
+  }
+  
+  boolean collision(PVector pos, PVector mov) {
+    PVector aft = pos.copy().add(mov);
+    if (DEBUG && DEBUG_COLLISON && DEBUG_COLLISON_PROJECTION) {
+      PVector proj = this.projection(pos, true);
+      if (proj != null) {
+        circle(proj.x, proj.y, 3);
+      }
+    }
+    
+    Wall virt_wall = new Wall(a.copy(), b.copy()); //Виртуальная стена колижена
+    PVector normile = virt_wall.projection(pos, false); //Если игрок в принципе может коснуться некоторой стены, то мы будем рабоать с этой стеной
+    if (normile != null) { //Если проекция есть, то игрок может коснуться стены
+      if (virt_wall.intersection(aft,pos) != null) {//Если было перечение виртуальной стены и линии движения игрока, то начать колижен
+        if (DEBUG && DEBUG_COLLISON && DEBUG_COLLISON_INTERSECTION) {
+          PVector posd = virt_wall.intersection(aft,pos);
+          push();
+          stroke(255,0,0,255);
+          circle(posd.x, posd.y, 2);
+          pop();
+          
+        }
+        normile = pos.copy().sub(normile).normalize().mult(COLLISION_DISTANCE);//Определим, в каком направлении виртаульная стена
+        //И сдвинем её туда
+        virt_wall.a.add(normile);
+        virt_wall.b.add(normile);
+        
+        if (DEBUG && DEBUG_COLLISON && DEBUG_COLLISON_VIRTUAL) line(virt_wall.a.x, virt_wall.a.y, virt_wall.b.x, virt_wall.b.y);
+        pos.set(virt_wall.projection(pos,false));
+        aft = virt_wall.projection(aft,false);
+        mov.set(aft.copy().sub(pos));
+        return true;
+      }    
+      
+    }
+    return false;
   }
   
 }
