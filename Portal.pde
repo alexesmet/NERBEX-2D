@@ -86,8 +86,7 @@ class Portal extends Visible{
   
   
   ArrayList<PVector> translate(PVector[] points, PVector pos) {  // for points
-    float angle = DeltaAngle;//Угол между порталами //TODO: пройтись по коду и выяснить, можно ли заменить angle на DeltaAngle без критических последствий 
-    angle += PI; //Волшебный доворот на PI, без этой волшебной констнты ничего не работает
+    float angle = DeltaAngle + PI;//Угол между порталами
     ArrayList<PVector> list = new ArrayList<PVector>();
     PVector left  = a.copy().sub(pos).normalize();
     PVector right = b.copy().sub(pos).normalize();
@@ -113,9 +112,6 @@ class Portal extends Visible{
     
     if (!good) return list;
     
-    //angle = PVectorAngle(direction, linked.direction);
-    
-    //angle = - angle;
     PVector transChar = pos.copy().add(tran); // virtaul camera base
     RotateAround(transChar,linked.coords,angle);; // virtaul camera rotate
     MultAround(transChar,linked.coords,linked.MultDist);//virtaul camera scale
@@ -207,7 +203,7 @@ class Portal extends Visible{
         level.rotates(pos,-angle);
         level.scales(pos,MultDist);
         
-        float h = this.distance(pos); //Расстояние виртуального игрока до двух порталов пропорционально MultDist; //TODO: узнать, надо домножать или делить на MultDist. Или оставить как есть
+        float h = this.distance(pos) / MultDist; //Расстояние виртуального игрока до двух порталов пропорционально MultDist;
         PVector proj = this.projection(pos,false);//Найти текущей проекцию позиции на портал
         float mulb = linked.a.copy().sub(linked.b).mag() * //Длинна выходного портала 
                      b.copy().sub(proj).mag() /            //Длинна от точки b до точки проекции

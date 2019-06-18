@@ -1,9 +1,6 @@
 abstract class Visible {
   abstract PVector first(); //Первая точка
   abstract PVector secon(); //Вторая точка
-  float coef() {
-    return (secon().y - first().y) / (secon().x - first().x);
-  }
   abstract void show();
   abstract Visible copyShift(PVector by);
   abstract void ReLoad();
@@ -15,12 +12,67 @@ abstract class Visible {
   //Если пересечения нет -> вернуть null
   //Если перечение есть  -> вернуть точку перечения
   PVector intersection(PVector point1, PVector point2) {
-    PVector a1 = new PVector(0,0), a2 = new PVector(0,0);
-    if (intersect(first().copy(),secon().copy(),point1.copy(),point2.copy(),a1,a2)) {
-      PVector ret = new PVector(a1.x,a1.y);
-      return ret;
+    
+    PVector a = first().copy();
+    PVector b = secon().copy();
+    PVector c = point1.copy();
+    PVector d = point2.copy();
+    
+    float EPS =1E-4;
+    float amin = min(a.x,b.x);
+    float amax = max(a.x,b.x);
+    float bmin = min(c.x,d.x);
+    float bmax = max(c.x,d.x);
+    if (max(amin,bmin) > min(amax,bmax) + EPS) return null;
+    amin = min(a.y,b.y);
+    amax = max(a.y,b.y);
+    bmin = min(c.y,d.y);
+    bmax = max(c.y,d.y);
+    if (max(amin,bmin) > min(amax,bmax) + EPS) return null;
+    
+    float ma = a.y - b.y;
+    float mb = b.x - a.x;
+    float mc = -ma * a.x - mb * a.y;
+    float z = sqrt(ma*ma + mb*mb);
+    if (z > EPS) {
+      ma /= z;
+      mb /= z;
+      mc /= z;
+    }  
+    float na = c.y - d.y;
+    float nb = d.x - c.x;
+    float nc = -na * c.x - nb * c.y;
+    z = sqrt(na*na + nb*nb);
+    if (z > EPS) {
+      na /= z;
+      nb /= z;
+      nc /= z;
+    } 
+    
+    float zn = ma*nb - mb*na;
+    PVector ans1 = new PVector(0,0);
+    PVector ans2 = new PVector(0,0);
+    if (abs (zn) < EPS) {
+      if (abs (ma * c.x + mb * c.y + mc) > EPS || abs (na * a.x + nb * a.y + nc) > EPS) return null;
+      
+      if (b.x < a.x-EPS || abs(b.x-a.x) < EPS && b.y < a.y - EPS) swap(b,a);
+      if (d.x < c.x-EPS || abs(d.x-c.x) < EPS && d.y < c.y - EPS) swap(d,c);
+      if (a.x < c.x-EPS || abs(a.x-c.x) < EPS && a.y < c.y - EPS) ans1 = c;
+      else ans1 = a;
+      if (b.x < d.x-EPS || abs(b.x-d.x) < EPS && b.y < d.y - EPS) ans2 = b;
+      else ans2 = d;
+      return ans1;
     }
-    return null;
+    else {
+      ans1.x = ans2.x = - (mc*nb - mb*nc) / zn;
+      ans1.y = ans2.y = - (ma*nc - mc*na) / zn;
+      if ( (min(a.x,b.x) <= ans1.x + EPS && ans1.x <= max(a.x,b.x) + EPS) 
+         &&(min(a.y,b.y) <= ans1.y + EPS && ans1.y <= max(a.y,b.y) + EPS) 
+         &&(min(c.x,d.x) <= ans1.x + EPS && ans1.x <= max(c.x,d.x) + EPS) 
+         &&(min(c.y,d.y) <= ans1.y + EPS && ans1.y <= max(c.y,d.y) + EPS)) return ans1;
+      else return null;
+        
+    }    
   }
   //Найти проекция точки point на линию (first(), secon())
   //Если border == true  -> проверить, лежит ли проекция на отрезке, если да, то вернуть точку, иначе вернуть null
@@ -53,92 +105,6 @@ abstract class Visible {
   //Возвращает true, если было событие колижена
   abstract boolean collision(PVector pos, PVector mov);
 }
-
-//Очень интересный скомунижжженый код с интернетов
-//TODO: перевести на человеческий
-//---------------------------------------------------------------------------------------------------
-
-float EPS =1E-4;
-
-//No My Function 0
-boolean speccheck(PVector a, PVector b) {
-  if (a.x < b.x-EPS || abs(a.x-b.x) < EPS && a.y < b.y - EPS) return true;
-  return false;
-}
-//No My class 0
-class myline {
-  float a, b, c;
-  myline() {}
-  myline (PVector p, PVector q) {
-    a = p.y - q.y;
-    b = q.x - p.x;
-    c = - a * p.x - b * p.y;
-    float z = sqrt (a*a + b*b);
-    if (abs(z) > EPS) {
-      a /= z;
-      b /= z;
-      c /= z;
-    }
-  } 
-  float mydist(PVector p) {
-    return a * p.x + b * p.y + c;
-  }
-};
-//determinant
-float det(float a, float b, float c, float d) {
-  return a*d - b*c;
-}
-//No My Function 2
-boolean betw (float l, float r, float x) {
-  return min(l,r) <= x + EPS && x <= max(l,r) + EPS;
-}
-//No My Function 3
-boolean intersect_1d (float a, float b, float c, float d) {
-  if (a > b)  {
-    float buf = a;
-    a = b;
-    b = buf;
-  }
-  if (c > d)  {
-    float buf = c;
-    c = d;
-    d = buf;
-  };
-  return max (a, c) <= min (b, d) + EPS;
-}
-
-//No My Function 4 intersect
-//TODO: используя правило "замени термин его значением" убрать все дополнительнные классы, засунув всё в intersect
-boolean intersect (PVector a, PVector b, PVector c, PVector d, PVector left, PVector right) {
-  if (! intersect_1d (a.x, b.x, c.x, d.x) || ! intersect_1d (a.y, b.y, c.y, d.y)) {
-    return false;
-  }
-  myline m = new myline(a, b);
-  myline n = new myline(c, d);
-  float zn = det (m.a, m.b, n.a, n.b);
-  if (abs (zn) < EPS) {
-    if (abs (m.mydist (c)) > EPS || abs (n.mydist (a)) > EPS)
-      return false;
-    if (speccheck(b,a)) swap(b,a);
-    if (speccheck(d,c)) swap(d,c);
-    
-    if (speccheck(a,c)) left = c;
-    else left = a;
-    if (speccheck(b,d)) right = b;
-    else right = d;
-    return true;
-  }
-  else {
-    left.x = right.x = - det (m.c, m.b, n.c, n.b) / zn;
-    left.y = right.y = - det (m.a, m.c, n.a, n.c) / zn;
-    return betw (a.x, b.x, left.x)
-      && betw (a.y, b.y, left.y)
-      && betw (c.x, d.x, left.x)
-      && betw (c.y, d.y, left.y);
-  }
-}
-
-//---------------------------------------------------------------------------------------------------
 
 class Wall extends Visible {
   PVector a, b;
